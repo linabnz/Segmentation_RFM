@@ -143,3 +143,29 @@ proc sql;
     from clients_sans_commandes;
 quit;
 
+
+data donnees.commandes;
+    set donnees.commandes;
+
+    /* Remplacement des mois français par des mois reconnus par SAS */
+    date_modifiee = tranwrd(date, "janv", "jan");
+    date_modifiee = tranwrd(date_modifiee, "févr", "feb");
+    date_modifiee = tranwrd(date_modifiee, "mars", "mar");
+    date_modifiee = tranwrd(date_modifiee, "avr", "apr");
+    date_modifiee = tranwrd(date_modifiee, "mai", "may");
+    date_modifiee = tranwrd(date_modifiee, "juin", "jun");
+    date_modifiee = tranwrd(date_modifiee, "juil", "jul");
+    date_modifiee = tranwrd(date_modifiee, "août", "aug");
+    date_modifiee = tranwrd(date_modifiee, "sept", "sep");
+    date_modifiee = tranwrd(date_modifiee, "oct", "oct");
+    date_modifiee = tranwrd(date_modifiee, "nov", "nov");
+    date_modifiee = tranwrd(date_modifiee, "déc", "dec");
+
+    /* Conversion de texte modifié en format Date SAS */
+    date_sas = input(date_modifiee, date9.);
+    format date_sas date9.; /* Appliquer le format de date SAS */
+run;
+
+proc print data=donnees.commandes(obs=10);
+    var date date_modifiee date_sas;
+run;
