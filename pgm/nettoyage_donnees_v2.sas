@@ -176,9 +176,21 @@ run;
 
 /* Enregistrement des tables clients et commandes après nettoyage/modification */
 
-/* Export de la table clients_MEF */
-proc export data=donnees.clients_mef
-    outfile="C:\Users\chemm\Desktop\cours\MOSEF\SAS\Projet\2-Projet_segmentation\2-Projet_segmentation\Données\clients_nettoyes.csv"
+/* --- Vérification de présence dans commandes_nettoyees --- */
+proc sql;
+    create table resultat.clients_nettoyes_avec_flag as
+    select 
+        a.*,
+        case 
+            when b.num_client is null then 1
+            else 0
+        end as client_sans_commande
+    from donnees.clients_mef a
+    left join donnees.commandes_nettoye b
+        on a.num_client = b.num_client;
+quit;
+proc export data=resultat.clients_nettoyes_avec_flag
+    outfile="C:\Users\chemm\Desktop\cours\MOSEF\SAS\Projet\2-Projet_segmentation\2-Projet_segmentation\Resultat\clients_nettoyes.csv"
     dbms=csv
     replace;
     delimiter=";";

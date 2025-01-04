@@ -150,3 +150,6 @@ proc export data=resultat.segment_RFM_final
     replace;
     delimiter=";";
 run;
+
+
+
