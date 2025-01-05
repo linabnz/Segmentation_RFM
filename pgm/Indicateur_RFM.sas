@@ -6,7 +6,7 @@ proc sql;
         min(intck('month', date_sas, "01JAN2023"d)) as recence label="Récence (mois)",
         count(distinct numero_commande) as frequence label="Fréquence (nombre de commandes)",
         sum(montant_total_paye) as montant label="Montant total payé"
-    from donnees.commandes
+    from donnees.Commandes_nettoye
     group by num_client;
 quit;
 
