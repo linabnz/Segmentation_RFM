@@ -72,6 +72,34 @@ table an_mois_inscription /
 out= freq_inscription_an_mois nocum ;
 run;
 
+/* Création de statistiques descriptives pour les clients */
+proc sql;
+    create table resultat.stat_client as 
+    select 
+        count(distinct(num_client)) as nb_client,
+        sum(actif=1) as compte_ouvert,
+        sum(inscrit_NL=1) as inscrit_NL,
+        sum(genre="Femme") as Madame,
+        sum(genre="Homme") as Monsieur,
+        sum(genre not in ("Homme","Femme")) as civilite_NR,
+        sum((age_client<=0) + (age_client>100)) as age_Non_renseigne,
+        sum(0<age_client<25) as age_Moins_de_25_ans,
+        sum(25<=age_client<35) as age_25_35_ans,
+        sum(35<=age_client<45) as age_35_45_ans,
+        sum(45<=age_client<55) as age_45_55_ans,
+        sum(55<=age_client<65) as age_55_65_ans,
+        sum(65<=age_client<100) as age_plus_de_65_ans,
+        mean(age_client) as age_moyen
+    from donnees.clients_MEF;
+quit;
+
+/* Transformation des statistiques descriptives en format vertical */
+proc transpose data=stat_client out=resultat.stat_client_vertical(rename=(col1=value));
+    var nb_client compte_ouvert inscrit_NL Madame Monsieur civilite_NR
+        age_Non_renseigne age_Moins_de_25_ans age_25_35_ans age_35_45_ans 
+        age_45_55_ans age_55_65_ans age_plus_de_65_ans age_moyen;
+run;
+
 /* Importation des données commandes depuis un fichier CSV */
 PROC IMPORT DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Données\commandes.csv"
     OUT=donnees.commandes
@@ -80,7 +108,18 @@ PROC IMPORT DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Don
     GETNAMES=YES;
     DELIMITER=";";
 RUN;
+/* Vérification du nombre de lignes dans la table commandes */
+proc sql;
+    select count(*) as Nombre_de_lignes
+    from donnees.commandes;
+quit;
 
+/* Vérification du nombre de colonnes dans la table commandes */
+proc sql;
+    select count(*) as Nombre_de_colonnes
+    from dictionary.columns
+    where libname = "DONNEES" and memname = "COMMANDES";
+quit;
 /* Nettoyage des noms de mois et conversion en format date SAS */
 data donnees.commandes;
     set donnees.commandes;
@@ -109,13 +148,13 @@ proc print data=donnees.commandes(obs=10);
     var date date_modifiee date_sas;
 run;
 
-/* Vérification du nombre de lignes dans la table commandes */
+/* Vérification du nombre de lignes dans la table commandes modifié */
 proc sql;
     select count(*) as Nombre_de_lignes
     from donnees.commandes;
 quit;
 
-/* Vérification du nombre de colonnes dans la table commandes */
+/* Vérification du nombre de colonnes dans la table commandes modifié*/
 proc sql;
     select count(*) as Nombre_de_colonnes
     from dictionary.columns
@@ -146,6 +185,18 @@ proc sql;
     from donnees.commandes;
 quit;
 
+/* Vérification des valeurs manquantes par colonne */
+proc sql;
+    select 
+        sum(num_client = "") as num_client_missing,
+        sum(numero_commande = .) as num_commande_missing,
+        sum(date = "") as date_missing,
+        sum(montant_des_produits = .) as montant_produit_missing,
+        sum(montant_livraison = .) as montant_livraison_missing,
+        sum(montant_total_paye = .) as montant_total_missing
+    from donnees.commandes;
+quit;
+
 /* Filtrage des commandes pour ne conserver que les lignes complètes */
 data donnees.commandes_nettoye;
     set donnees.commandes;
@@ -158,34 +209,6 @@ proc sql;
     from donnees.commandes_nettoye;
 quit;
 
-/* Création de statistiques descriptives pour les clients */
-proc sql;
-    create table resultat.stat_client as 
-    select 
-        count(distinct(num_client)) as nb_client,
-        sum(actif=1) as compte_ouvert,
-        sum(inscrit_NL=1) as inscrit_NL,
-        sum(genre="Femme") as Madame,
-        sum(genre="Homme") as Monsieur,
-        sum(genre not in ("Homme","Femme")) as civilite_NR,
-        sum((age_client<=0) + (age_client>100)) as age_Non_renseigne,
-        sum(0<age_client<25) as age_Moins_de_25_ans,
-        sum(25<=age_client<35) as age_25_35_ans,
-        sum(35<=age_client<45) as age_35_45_ans,
-        sum(45<=age_client<55) as age_45_55_ans,
-        sum(55<=age_client<65) as age_55_65_ans,
-        sum(65<=age_client<100) as age_plus_de_65_ans,
-        mean(age_client) as age_moyen
-    from donnees.clients_MEF;
-quit;
-
-/* Transformation des statistiques descriptives en format vertical */
-proc transpose data=stat_client out=resultat.stat_client_vertical(rename=(col1=value));
-    var nb_client compte_ouvert inscrit_NL Madame Monsieur civilite_NR
-        age_Non_renseigne age_Moins_de_25_ans age_25_35_ans age_35_45_ans 
-        age_45_55_ans age_55_65_ans age_plus_de_65_ans age_moyen;
-run;
-
 /* Identification des clients sans commandes */
 proc sql;
     create table resultat.clients_sans_commandes as
@@ -197,7 +220,7 @@ quit;
 /* Comptage des clients sans commandes */
 proc sql;
     select count(*) as nb_clients_sans_commandes
-    from clients_sans_commandes;
+    from resultat.clients_sans_commandes;
 quit;
 
 /* Ajout d'un flag pour indiquer les clients sans commandes en créant une variable binaire */
