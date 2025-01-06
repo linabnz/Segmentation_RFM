@@ -1,5 +1,5 @@
-/* Importation des données clients depuis le fichier client.csv */
-proc import DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Données\clients.csv"
+/* Importation des donnÃ©es clients depuis le fichier client.csv */
+proc import DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\DonnÃ©es\clients.csv"
     OUT=donnees.clients
     DBMS=CSV
     REPLACE;
@@ -7,19 +7,19 @@ proc import DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Don
     DELIMITER=";";
 RUN;
 
-/* Renommage de la colonne VAR3 pour améliorer la lisibilité */
+/* Renommage de la colonne VAR3 pour amÃ©liorer la lisibilitÃ© */
 data donnees.clients;
     set donnees.clients;
     rename VAR3 = date_inscription;
 run;
 
-/* Vérification du nombre de lignes dans la table clients */
+/* VÃ©rification du nombre de lignes dans la table clients */
 proc sql;
     select count(*) as Nombre_de_lignes
     from donnees.clients;
 quit;
 
-/* Vérification du nombre de colonnes dans la table clients */
+/* VÃ©rification du nombre de colonnes dans la table clients */
 proc sql;
     select count(*) as Nombre_de_colonnes
     from dictionary.columns
@@ -32,7 +32,7 @@ proc sql;
     from donnees.clients;
 quit;
 
-/* Vérification des valeurs manquantes par colonne */
+/* VÃ©rification des valeurs manquantes par colonne */
 proc sql;
     select 
         sum(num_client = "") as num_client_missing,
@@ -59,20 +59,20 @@ proc freq data=donnees.clients;
     tables Genre A_ete_parraine actif inscrit_NL / nocum;
 run;
 
-/* Création de nouvelles variables : âge et année-mois d'inscription */
+/* CrÃ©ation de nouvelles variables : Ã¢ge et annÃ©e-mois d'inscription */
 data donnees.clients_MEF;
     set donnees.clients; 
-    age_client = intck('year', date_naissance, '01JAN2024'd) ; /* Calcul de l'âge en années */
-    an_mois_inscription = cats(year(date_inscription), '_', put(month(date_inscription), z2.)); /* Format année-mois */
+    age_client = intck('year', date_naissance, '01JAN2024'd) ; /* Calcul de l'Ã¢ge en annÃ©es */
+    an_mois_inscription = cats(year(date_inscription), '_', put(month(date_inscription), z2.)); /* Format annÃ©e-mois */
 run;
 
-/* Comptage des inscriptions par mois et année */
+/* Comptage des inscriptions par mois et annÃ©e */
 proc freq data=donnees.clients_mef;
 table an_mois_inscription / 
 out= freq_inscription_an_mois nocum ;
 run;
 
-/* Création de statistiques descriptives pour les clients */
+/* CrÃ©ation de statistiques descriptives pour les clients */
 proc sql;
     create table resultat.stat_client as 
     select 
@@ -100,21 +100,21 @@ proc transpose data=stat_client out=resultat.stat_client_vertical(rename=(col1=v
         age_45_55_ans age_55_65_ans age_plus_de_65_ans age_moyen;
 run;
 
-/* Importation des données commandes depuis un fichier CSV */
-PROC IMPORT DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Données\commandes.csv"
+/* Importation des donnÃ©es commandes depuis un fichier CSV */
+PROC IMPORT DATAFILE="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\DonnÃ©es\commandes.csv"
     OUT=donnees.commandes
     DBMS=CSV
     REPLACE;
     GETNAMES=YES;
     DELIMITER=";";
 RUN;
-/* Vérification du nombre de lignes dans la table commandes */
+/* VÃ©rification du nombre de lignes dans la table commandes */
 proc sql;
     select count(*) as Nombre_de_lignes
     from donnees.commandes;
 quit;
 
-/* Vérification du nombre de colonnes dans la table commandes */
+/* VÃ©rification du nombre de colonnes dans la table commandes */
 proc sql;
     select count(*) as Nombre_de_colonnes
     from dictionary.columns
@@ -126,35 +126,35 @@ data donnees.commandes;
 
     /* Transformation des noms de mois en anglais */
     date_modifiee = tranwrd(date, "janv", "jan");
-    date_modifiee = tranwrd(date_modifiee, "févr", "feb");
+    date_modifiee = tranwrd(date_modifiee, "fÃ©vr", "feb");
     date_modifiee = tranwrd(date_modifiee, "mars", "mar");
     date_modifiee = tranwrd(date_modifiee, "avr", "apr");
     date_modifiee = tranwrd(date_modifiee, "mai", "may");
     date_modifiee = tranwrd(date_modifiee, "juin", "jun");
     date_modifiee = tranwrd(date_modifiee, "juil", "jul");
-    date_modifiee = tranwrd(date_modifiee, "août", "aug");
+    date_modifiee = tranwrd(date_modifiee, "aoÃ»t", "aug");
     date_modifiee = tranwrd(date_modifiee, "sept", "sep");
     date_modifiee = tranwrd(date_modifiee, "oct", "oct");
     date_modifiee = tranwrd(date_modifiee, "nov", "nov");
-    date_modifiee = tranwrd(date_modifiee, "déc", "dec");
+    date_modifiee = tranwrd(date_modifiee, "dÃ©c", "dec");
 
     /* Conversion en format date SAS */
     date_sas = input(date_modifiee, date9.);
     format date_sas date9.;
 run;
 
-/* Affichage des 10 premières lignes avec les colonnes modifiées */
+/* Affichage des 10 premiÃ¨res lignes avec les colonnes modifiÃ©es */
 proc print data=donnees.commandes(obs=10);
     var date date_modifiee date_sas;
 run;
 
-/* Vérification du nombre de lignes dans la table commandes modifié */
+/* VÃ©rification du nombre de lignes dans la table commandes modifiÃ© */
 proc sql;
     select count(*) as Nombre_de_lignes
     from donnees.commandes;
 quit;
 
-/* Vérification du nombre de colonnes dans la table commandes modifié*/
+/* VÃ©rification du nombre de colonnes dans la table commandes modifiÃ©*/
 proc sql;
     select count(*) as Nombre_de_colonnes
     from dictionary.columns
@@ -185,7 +185,7 @@ proc sql;
     from donnees.commandes;
 quit;
 
-/* Vérification des valeurs manquantes par colonne */
+/* VÃ©rification des valeurs manquantes par colonne */
 proc sql;
     select 
         sum(num_client = "") as num_client_missing,
@@ -197,15 +197,21 @@ proc sql;
     from donnees.commandes;
 quit;
 
-/* Filtrage des commandes pour ne conserver que les lignes complètes */
+/* Filtrage des commandes pour ne conserver que les lignes complÃ¨tes */
 data donnees.commandes_nettoye;
     set donnees.commandes;
     if montant_des_produits ne . and montant_livraison ne . and montant_total_paye ne .;
 run;
 
-/* Vérification du nombre de lignes dans la table commandes nettoye */
+/* VÃ©rification du nombre de lignes dans la table commandes nettoye */
 proc sql;
     select count(*) as Nombre_de_lignes
+    from donnees.commandes_nettoye;
+quit;
+
+/* Comptage des clients uniques dans les commandes nettoye */
+proc sql;
+    select count(distinct num_client) as Nombre_clients_uniques
     from donnees.commandes_nettoye;
 quit;
 
@@ -223,7 +229,7 @@ proc sql;
     from resultat.clients_sans_commandes;
 quit;
 
-/* Ajout d'un flag pour indiquer les clients sans commandes en créant une variable binaire */
+/* Ajout d'un flag pour indiquer les clients sans commandes en crÃ©ant une variable binaire */
 proc sql;
     create table resultat.clients_nettoyes_avec_flag as
     select 
@@ -237,16 +243,16 @@ proc sql;
         on a.num_client = b.num_client;
 quit;
 
-/* Export des données nettoyées (clients avec flag et commandes nettoyées) */
+/* Export des donnÃ©es nettoyÃ©es (clients avec flag et commandes nettoyÃ©es) */
 proc export data=resultat.clients_nettoyes_avec_flag
-    outfile="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Résultat\clients_nettoyes.csv"
+    outfile="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\RÃ©sultat\clients_nettoyes.csv"
     dbms=csv
     replace;
     delimiter=";";
 run;
 
 proc export data=donnees.commandes_nettoye
-    outfile="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\Résultat\commandes_nettoyees.csv"
+    outfile="C:\Users\dumas\Desktop\MOSEF\CRM\2-Projet_segmentation\RÃ©sultat\commandes_nettoyees.csv"
     dbms=csv
     replace;
     delimiter=";";
