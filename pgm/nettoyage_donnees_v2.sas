@@ -84,20 +84,20 @@ proc sql;
         sum(genre not in ("Homme","Femme")) as civilite_NR,
         sum((age_client<=0) + (age_client>100)) as age_Non_renseigne,
         sum(0<age_client<25) as age_Moins_de_25_ans,
-        sum(25<=age_client<35) as age_25_35_ans,
-        sum(35<=age_client<45) as age_35_45_ans,
-        sum(45<=age_client<55) as age_45_55_ans,
-        sum(55<=age_client<65) as age_55_65_ans,
-        sum(65<=age_client<100) as age_plus_de_65_ans,
+        sum(25<=age_client<35) as age_25_34_ans,
+        sum(35<=age_client<45) as age_35_44_ans,
+        sum(45<=age_client<55) as age_45_54_ans,
+        sum(55<=age_client<65) as age_55_64_ans,
+        sum(65<=age_client<100) as age_65_ans_plus,
         mean(age_client) as age_moyen
     from donnees.clients_MEF;
 quit;
 
 /* Transformation des statistiques descriptives en format vertical */
-proc transpose data=stat_client out=resultat.stat_client_vertical(rename=(col1=value));
+proc transpose data=resultat.stat_client out=resultat.stat_client_vertical(rename=(col1=value));
     var nb_client compte_ouvert inscrit_NL Madame Monsieur civilite_NR
-        age_Non_renseigne age_Moins_de_25_ans age_25_35_ans age_35_45_ans 
-        age_45_55_ans age_55_65_ans age_plus_de_65_ans age_moyen;
+        age_Non_renseigne age_Moins_de_25_ans age_25_34_ans age_35_44_ans 
+        age_45_54_ans age_55_64_ans age_65_ans_plus age_moyen;
 run;
 
 /* Importation des données commandes depuis un fichier CSV */
@@ -208,8 +208,7 @@ proc sql;
     select count(*) as Nombre_de_lignes
     from donnees.commandes_nettoye;
 quit;
-
-/* Comptage des clients uniques dans les commandes nettoye */
+/* Comptage des clients uniques dans les commandes nettoyé */
 proc sql;
     select count(distinct num_client) as Nombre_clients_uniques
     from donnees.commandes_nettoye;
@@ -227,6 +226,12 @@ quit;
 proc sql;
     select count(*) as nb_clients_sans_commandes
     from resultat.clients_sans_commandes;
+quit;
+
+proc sql;
+    select count(*) as Nombre_Inscrits_NL_and_Actif
+    from Resultat.Clients_sans_commandes
+    where inscrit_NL = 1 and actif = 1;
 quit;
 
 /* Ajout d'un flag pour indiquer les clients sans commandes en créant une variable binaire */
