@@ -1,3 +1,8 @@
+/* --- 1. Déclaration des bibliothèques --- */
+LIBNAME resultat 'C:\Users\chemm\Desktop\cours\MOSEF\SAS\Projet\2-Projet_segmentation\2-Projet_segmentation\Resultat';
+LIBNAME donnees 'C:\Users\chemm\Desktop\cours\MOSEF\SAS\Projet\2-Projet_segmentation\2-Projet_segmentation\Données';
+
+
 /* Importation des données clients depuis le fichier client.csv */
 proc import DATAFILE="C:\Users\chemm\Desktop\cours\MOSEF\SAS\Projet\2-Projet_segmentation\2-Projet_segmentation\Données\clients.csv"
     OUT=donnees.clients
